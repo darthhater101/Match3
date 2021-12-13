@@ -1,0 +1,14 @@
+{
+    "colors" : [
+        "blue",
+        "yellow",
+        "violet",
+        "green",
+        "red",
+        "white",
+        "black"
+    ],
+
+    "rows": 10,
+    "columns": 10
+}
