@@ -11,6 +11,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <cmath>
+#include <algorithm>
 
 
 QColor GameConfig::getRandomColor()
@@ -23,6 +24,7 @@ GameFieldModel::GameFieldModel(QObject *parent)
 {
     m_roleNames[ColorRole] = "name";
     m_roleNames[MatchRole] = "match";
+    m_roleNames[DeletedRole] = "deleted";
 
     m_gameConfig = loadGameFieldConfiguration();
     m_gameField.resize(m_gameConfig.rows * m_gameConfig.columns);
@@ -60,12 +62,14 @@ QVariant GameFieldModel::data(const QModelIndex &index, int role) const
         return m_gameField[row].getColor().name();
     case MatchRole:
         return m_gameField[row].isMatched();
+    case DeletedRole:
+        return m_gameField[row].isDeleted();
     }
 
     return QVariant();
 }
 
-void GameFieldModel::swap(int from, int to)
+bool GameFieldModel::swap(int from, int to)
 {
     if((std::abs(from - to) == 1 && std::floor(from / m_gameConfig.rows) == std::floor(to / m_gameConfig.rows))
             || std::abs(from - to) == m_gameConfig.columns)
@@ -83,7 +87,9 @@ void GameFieldModel::swap(int from, int to)
             m_gameField.move(max - 1, min);
             endMoveRows();
         }
+        return true;
     }
+    return false;
 }
 
 GameConfig GameFieldModel::loadGameFieldConfiguration()
@@ -143,6 +149,57 @@ void GameFieldModel::match3(Tile& tile1, Tile& tile2, Tile& tile3)
         tile1.setIsMatched();
         tile2.setIsMatched();
         tile3.setIsMatched();
+    }
+}
+
+void GameFieldModel::update()
+{
+    for(int i = 0; i < m_gameConfig.rows; i++)
+    {
+        for(int j = 0; j < m_gameConfig.columns; j++)
+        {
+            if(m_gameField[i * m_gameConfig.rows + j].isDeleted())
+            {
+                for(int row = i - 1; row >= 0; row--)
+                {
+                    swap(row * m_gameConfig.rows + j, (row + 1) * m_gameConfig.rows + j);
+                }
+            }
+        }
+    }
+}
+
+void GameFieldModel::removeMatched()
+{
+    //    m_gameField.erase(std::remove_if(m_gameField.begin(), m_gameField.end(), [](const Tile& tile) {
+    //        return tile.isMatched();
+    //    }), m_gameField.end());
+
+    for(auto& tile : m_gameField)
+    {
+        if(tile.isMatched())
+        {
+            tile.setDeleted();
+        }
+    }
+
+    emit dataChanged(createIndex(0, 0), createIndex(m_gameField.size(), 0));
+}
+
+void GameFieldModel::add()
+{
+    for(int i = 0; i < m_gameField.size(); i++)
+    {
+        if(m_gameField[i].isDeleted())
+        {
+            beginRemoveRows(QModelIndex(), i, i);
+            m_gameField.remove(i);
+            endRemoveRows();
+
+            beginInsertRows(QModelIndex(), i, i);
+            m_gameField.insert(i, Tile(m_gameConfig.getRandomColor()));
+            endInsertRows();
+        }
     }
 }
 

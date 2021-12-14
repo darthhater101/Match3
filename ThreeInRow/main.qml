@@ -19,8 +19,12 @@ Window {
         id: view
         width: root.width
         height: root.height
+        focus: true
 
         property int previousClickedIndex: -1
+        property bool ended: false
+
+        onAnimEnded: ended = isRun
 
         model: field
         delegate: Tile {
@@ -30,12 +34,33 @@ Window {
                 if(view.previousClickedIndex !== -1)
                 {
                     field.swap(index, view.previousClickedIndex)
+                    console.log(view.ended)
+                    while(view.moveAnimationRunning) {}
+                    field.checkForMatch();
+                    field.removeMatched();
+                    field.update();
+                    field.add();
                     view.previousClickedIndex = -1;
                 }
                 else
                 {
                     view.previousClickedIndex = index;
                 }
+            }
+        }
+
+        Keys.onPressed: {
+            if (event.key === Qt.Key_Q) {
+                field.removeMatched()
+            }
+            if (event.key === Qt.Key_W) {
+                field.update()
+            }
+            if (event.key === Qt.Key_E) {
+                field.add()
+            }
+            if (event.key === Qt.Key_Escape) {
+                root.close();
             }
         }
     }

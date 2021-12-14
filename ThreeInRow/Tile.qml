@@ -3,17 +3,18 @@ import QtQuick 2.0
 Item {
     id: root
     signal clicked
+    visible: !deleted
     Rectangle {
         id: circle
         color: name
         width: parent.width - 30
         height: parent.height - 30
-        property point centerPoint: Qt.point(width / 2, height / 2)
         radius: width * 0.5
         anchors.centerIn: parent
-
         border.color: "navy"
         border.width: match ? 5 : 0
+        property point centerPoint: Qt.point(width / 2, height / 2)
+
 
         SequentialAnimation {
             id: anim

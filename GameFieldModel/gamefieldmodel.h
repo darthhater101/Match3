@@ -25,9 +25,10 @@ class GameFieldModel : public QAbstractListModel
 public:
 
     enum RoleNames {
-            ColorRole = Qt::UserRole,
-            MatchRole = Qt::UserRole + 2
-        };
+        ColorRole = Qt::UserRole,
+        MatchRole = Qt::UserRole + 2,
+        DeletedRole = Qt::UserRole + 3
+    };
 
     explicit GameFieldModel(QObject *parent = nullptr);
     ~GameFieldModel();
@@ -35,10 +36,15 @@ public:
     virtual int rowCount(const QModelIndex &parent) const override;
     virtual QVariant data(const QModelIndex &index, int role) const override;
 
-    Q_INVOKABLE void swap(int first, int second);
 
-    void checkForMatch();
     void match3(Tile& tile1, Tile& tile2, Tile& tile3);
+
+    Q_INVOKABLE void checkForMatch();
+    Q_INVOKABLE bool swap(int first, int second);
+    Q_INVOKABLE void update();
+    Q_INVOKABLE void removeMatched();
+
+    Q_INVOKABLE void add();
 
 protected:
     virtual QHash<int, QByteArray> roleNames() const override;
