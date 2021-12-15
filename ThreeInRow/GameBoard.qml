@@ -9,15 +9,15 @@ GridView {
     displaced: moveAnimation
     add: addAnimation
 
-    property alias moveAnimationRunning: moveAnimation.running
-
-    signal animEnded(bool isRun)
+    signal animationMoveEnded(bool running)
+    signal animationAddEnded(bool running)
 
     Transition {
         id: addAnimation
         NumberAnimation {
             property: "y"; from: -100; duration: 400
         }
+        onRunningChanged: animationAddEnded(running)
     }
 
     Transition {
@@ -25,7 +25,7 @@ GridView {
         NumberAnimation {
             properties: "x, y"; duration: 400;
         }
-        onRunningChanged: animEnded(running)
+        onRunningChanged: animationMoveEnded(running)
     }
 
 }

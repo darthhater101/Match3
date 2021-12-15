@@ -12,6 +12,8 @@
 #include <cstdlib>
 #include <cmath>
 #include <algorithm>
+#include <chrono>
+#include <thread>
 
 
 QColor GameConfig::getRandomColor()
@@ -33,8 +35,6 @@ GameFieldModel::GameFieldModel(QObject *parent)
     {
         m_gameField[i] = Tile(QColor(m_gameConfig.getRandomColor()));
     }
-
-    checkForMatch();
 }
 
 GameFieldModel::~GameFieldModel()
@@ -71,7 +71,7 @@ QVariant GameFieldModel::data(const QModelIndex &index, int role) const
 
 bool GameFieldModel::swap(int from, int to)
 {
-    if((std::abs(from - to) == 1 && std::floor(from / m_gameConfig.rows) == std::floor(to / m_gameConfig.rows))
+    if((std::abs(from - to) == 1 && std::floor(from / m_gameConfig.columns) == std::floor(to / m_gameConfig.columns))
             || std::abs(from - to) == m_gameConfig.columns)
     {
         int min = std::min(from, to);
@@ -121,8 +121,9 @@ GameConfig GameFieldModel::loadGameFieldConfiguration()
     return { rows, columns, colors };
 }
 
-void GameFieldModel::checkForMatch()
+bool GameFieldModel::checkForMatch()
 {
+    bool wasMatched = false;
     auto tile = m_gameField.begin();
     for(int i = 0; i < m_gameConfig.rows; i++)
     {
@@ -130,39 +131,60 @@ void GameFieldModel::checkForMatch()
         {
             if(j > 0 && j < m_gameConfig.columns - 1)
             {
-                match3(*tile, *(tile + 1), *(tile - 1));
+                if(match3(*tile, *(tile + 1), *(tile - 1)))
+                {
+                    wasMatched = true;
+                }
             }
             if(i > 0 && i < m_gameConfig.rows - 1)
             {
-                match3(*tile, *(tile + m_gameConfig.columns), *(tile - m_gameConfig.columns));
+                if(match3(*tile, *(tile + m_gameConfig.columns), *(tile - m_gameConfig.columns)))
+                {
+                    wasMatched = true;
+                }
             }
 
             tile++;
         }
     }
+    return wasMatched;
 }
 
-void GameFieldModel::match3(Tile& tile1, Tile& tile2, Tile& tile3)
+bool GameFieldModel::match3(Tile& tile1, Tile& tile2, Tile& tile3)
 {
     if(tile1 == tile2 && tile1 == tile3)
     {
         tile1.setIsMatched();
         tile2.setIsMatched();
         tile3.setIsMatched();
+        return true;
     }
+    return false;
 }
 
-void GameFieldModel::update()
+bool GameFieldModel::hasMoves()
 {
     for(int i = 0; i < m_gameConfig.rows; i++)
     {
         for(int j = 0; j < m_gameConfig.columns; j++)
         {
-            if(m_gameField[i * m_gameConfig.rows + j].isDeleted())
+
+        }
+    }
+    return false;
+}
+
+void GameFieldModel::riseDeleted()
+{
+    for(int i = 0; i < m_gameConfig.rows; i++)
+    {
+        for(int j = 0; j < m_gameConfig.columns; j++)
+        {
+            if(m_gameField[i * m_gameConfig.columns + j].isDeleted())
             {
                 for(int row = i - 1; row >= 0; row--)
                 {
-                    swap(row * m_gameConfig.rows + j, (row + 1) * m_gameConfig.rows + j);
+                    swap(row * m_gameConfig.columns + j, (row + 1) * m_gameConfig.columns + j);
                 }
             }
         }
@@ -171,10 +193,6 @@ void GameFieldModel::update()
 
 void GameFieldModel::removeMatched()
 {
-    //    m_gameField.erase(std::remove_if(m_gameField.begin(), m_gameField.end(), [](const Tile& tile) {
-    //        return tile.isMatched();
-    //    }), m_gameField.end());
-
     for(auto& tile : m_gameField)
     {
         if(tile.isMatched())

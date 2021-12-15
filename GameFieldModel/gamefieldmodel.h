@@ -37,13 +37,14 @@ public:
     virtual QVariant data(const QModelIndex &index, int role) const override;
 
 
-    void match3(Tile& tile1, Tile& tile2, Tile& tile3);
+    bool match3(Tile& tile1, Tile& tile2, Tile& tile3);
 
-    Q_INVOKABLE void checkForMatch();
+    bool hasMoves();
+
+    Q_INVOKABLE bool checkForMatch();
     Q_INVOKABLE bool swap(int first, int second);
-    Q_INVOKABLE void update();
+    Q_INVOKABLE void riseDeleted();
     Q_INVOKABLE void removeMatched();
-
     Q_INVOKABLE void add();
 
 protected:

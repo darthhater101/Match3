@@ -19,48 +19,48 @@ Window {
         id: view
         width: root.width
         height: root.height
-        focus: true
 
         property int previousClickedIndex: -1
-        property bool ended: false
-
-        onAnimEnded: ended = isRun
+        property int currentClickedIndex: -1
+        property bool running: false
 
         model: field
+
         delegate: Tile {
             width: view.cellWidth
             height: view.cellHeight
             onClicked: {
-                if(view.previousClickedIndex !== -1)
-                {
-                    field.swap(index, view.previousClickedIndex)
-                    console.log(view.ended)
-                    while(view.moveAnimationRunning) {}
-                    field.checkForMatch();
-                    field.removeMatched();
-                    field.update();
-                    field.add();
-                    view.previousClickedIndex = -1;
+                if(view.previousClickedIndex !== -1) {
+                    view.currentClickedIndex = index;
+                    if(!field.swap(view.currentClickedIndex, view.previousClickedIndex)) {
+                        view.currentClickedIndex = -1;
+                        view.previousClickedIndex = -1;
+                    }
                 }
-                else
-                {
+                else {
                     view.previousClickedIndex = index;
                 }
             }
         }
 
-        Keys.onPressed: {
-            if (event.key === Qt.Key_Q) {
-                field.removeMatched()
-            }
-            if (event.key === Qt.Key_W) {
-                field.update()
-            }
-            if (event.key === Qt.Key_E) {
-                field.add()
-            }
-            if (event.key === Qt.Key_Escape) {
-                root.close();
+        Connections {
+            onAnimationMoveEnded: update(running)
+            onAnimationAddEnded: update(running)
+
+            function update(running) {
+                if(!running) {
+                    if(field.checkForMatch()) {
+                        field.removeMatched();
+                        field.riseDeleted();
+                        field.add();
+                    }
+                    else {
+                        if(view.currentClickedIndex !== -1 || view.previousClickedIndex !== -1)
+                        field.swap(view.currentClickedIndex, view.previousClickedIndex);
+                    }
+                    view.currentClickedIndex = -1;
+                    view.previousClickedIndex = -1;
+                }
             }
         }
     }
