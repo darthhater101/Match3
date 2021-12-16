@@ -38,8 +38,11 @@ public:
 
 
     bool match3(Tile& tile1, Tile& tile2, Tile& tile3);
+    bool possibleMatch3(Tile& tile1, Tile& tile2, Tile& tile3);
 
-    bool hasMoves();
+    Q_INVOKABLE bool hasMoves();
+
+    Q_INVOKABLE void generateBoard();
 
     Q_INVOKABLE bool checkForMatch();
     Q_INVOKABLE bool swap(int first, int second);

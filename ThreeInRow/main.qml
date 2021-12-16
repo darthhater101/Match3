@@ -55,11 +55,15 @@ Window {
                         field.add();
                     }
                     else {
-                        if(view.currentClickedIndex !== -1 || view.previousClickedIndex !== -1)
-                        field.swap(view.currentClickedIndex, view.previousClickedIndex);
+                        if(view.currentClickedIndex !== -1 || view.previousClickedIndex !== -1) {
+                            field.swap(view.currentClickedIndex, view.previousClickedIndex);
+                        }
                     }
                     view.currentClickedIndex = -1;
                     view.previousClickedIndex = -1;
+                    if(!field.hasMoves()) {
+                        console.log("No moves");
+                    }
                 }
             }
         }

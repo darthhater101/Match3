@@ -14,6 +14,7 @@ Item {
         border.color: "navy"
         border.width: match ? 5 : 0
         property point centerPoint: Qt.point(width / 2, height / 2)
+        property alias wd: circle.width
 
         SequentialAnimation {
             id: anim

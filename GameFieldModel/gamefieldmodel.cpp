@@ -30,11 +30,8 @@ GameFieldModel::GameFieldModel(QObject *parent)
 
     m_gameConfig = loadGameFieldConfiguration();
     m_gameField.resize(m_gameConfig.rows * m_gameConfig.columns);
-    std::srand(time(0));
-    for(int i = 0; i < m_gameField.size(); i++)
-    {
-        m_gameField[i] = Tile(QColor(m_gameConfig.getRandomColor()));
-    }
+
+    generateBoard();
 }
 
 GameFieldModel::~GameFieldModel()
@@ -121,6 +118,48 @@ GameConfig GameFieldModel::loadGameFieldConfiguration()
     return { rows, columns, colors };
 }
 
+void GameFieldModel::generateBoard()
+{
+    auto checkPrevious = [this](int row, int column) -> bool {
+
+        if(row > 1)
+        {
+            if(possibleMatch3(m_gameField[row * m_gameConfig.columns + column],
+                              m_gameField[(row - 1) * m_gameConfig.columns + column],
+                              m_gameField[(row - 2) * m_gameConfig.columns + column]))
+            {
+                return true;
+            }
+        }
+        if(column > 1)
+        {
+            if(possibleMatch3(m_gameField[row * m_gameConfig.columns + column],
+                              m_gameField[row * m_gameConfig.columns + (column - 1)],
+                              m_gameField[row * m_gameConfig.columns + (column - 2)]))
+            {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    std::srand(time(0));
+    int counter = 0;
+    for(int i = 0; i < m_gameConfig.rows; i++)
+    {
+        for(int j = 0; j < m_gameConfig.columns; j++)
+        {
+            do
+            {
+                m_gameField[i * m_gameConfig.columns + j] = Tile(QColor(m_gameConfig.getRandomColor()));
+                counter++;
+            } while(checkPrevious(i, j));
+        }
+    }
+
+    qDebug() << counter;
+}
+
 bool GameFieldModel::checkForMatch()
 {
     bool wasMatched = false;
@@ -162,15 +201,20 @@ bool GameFieldModel::match3(Tile& tile1, Tile& tile2, Tile& tile3)
     return false;
 }
 
+bool GameFieldModel::possibleMatch3(Tile &tile1, Tile &tile2, Tile &tile3)
+{
+    if(tile1 == tile2 && tile1 == tile3)
+    {
+        //tile1.setPossibleMatch(true);
+        //tile2.setPossibleMatch(true);
+        //tile3.setPossibleMatch(true);
+        return true;
+    }
+    return false;
+}
+
 bool GameFieldModel::hasMoves()
 {
-    for(int i = 0; i < m_gameConfig.rows; i++)
-    {
-        for(int j = 0; j < m_gameConfig.columns; j++)
-        {
-
-        }
-    }
     return false;
 }
 
