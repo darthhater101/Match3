@@ -27,7 +27,8 @@ public:
     enum RoleNames {
         ColorRole = Qt::UserRole,
         MatchRole = Qt::UserRole + 2,
-        DeletedRole = Qt::UserRole + 3
+        DeletedRole = Qt::UserRole + 3,
+        PossibleRole = Qt::UserRole + 4
     };
 
     explicit GameFieldModel(QObject *parent = nullptr);
@@ -57,6 +58,8 @@ private:
     QVector<Tile> m_gameField;
     GameConfig m_gameConfig;
     QHash<int, QByteArray> m_roleNames;
+
+    int m_score;
 
     int getRows();
     int getColumns();

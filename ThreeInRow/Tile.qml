@@ -12,9 +12,14 @@ Item {
         radius: width * 0.5
         anchors.centerIn: parent
         border.color: "navy"
-        border.width: match ? 5 : 0
+        border.width: possible ? 5 : 0
         property point centerPoint: Qt.point(width / 2, height / 2)
-        property alias wd: circle.width
+
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: Qt.lighter(circle.color, 1.5) }
+            GradientStop { position: 0.2; color: circle.color }
+            GradientStop { position: 1.0; color: Qt.darker(circle.color, 4.0) }
+        }
 
         SequentialAnimation {
             id: anim

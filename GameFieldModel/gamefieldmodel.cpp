@@ -22,11 +22,12 @@ QColor GameConfig::getRandomColor()
 }
 
 GameFieldModel::GameFieldModel(QObject *parent)
-    : QAbstractListModel(parent)
+    : QAbstractListModel(parent), m_score(0)
 {
     m_roleNames[ColorRole] = "name";
     m_roleNames[MatchRole] = "match";
     m_roleNames[DeletedRole] = "deleted";
+    m_roleNames[PossibleRole] = "possible";
 
     m_gameConfig = loadGameFieldConfiguration();
     m_gameField.resize(m_gameConfig.rows * m_gameConfig.columns);
@@ -61,6 +62,8 @@ QVariant GameFieldModel::data(const QModelIndex &index, int role) const
         return m_gameField[row].isMatched();
     case DeletedRole:
         return m_gameField[row].isDeleted();
+    case PossibleRole:
+        return m_gameField[row].isPossibleMatch();
     }
 
     return QVariant();
@@ -144,7 +147,6 @@ void GameFieldModel::generateBoard()
     };
 
     std::srand(time(0));
-    int counter = 0;
     for(int i = 0; i < m_gameConfig.rows; i++)
     {
         for(int j = 0; j < m_gameConfig.columns; j++)
@@ -152,12 +154,9 @@ void GameFieldModel::generateBoard()
             do
             {
                 m_gameField[i * m_gameConfig.columns + j] = Tile(QColor(m_gameConfig.getRandomColor()));
-                counter++;
             } while(checkPrevious(i, j));
         }
     }
-
-    qDebug() << counter;
 }
 
 bool GameFieldModel::checkForMatch()
@@ -205,9 +204,9 @@ bool GameFieldModel::possibleMatch3(Tile &tile1, Tile &tile2, Tile &tile3)
 {
     if(tile1 == tile2 && tile1 == tile3)
     {
-        //tile1.setPossibleMatch(true);
-        //tile2.setPossibleMatch(true);
-        //tile3.setPossibleMatch(true);
+//        tile1.setPossibleMatch(true);
+//        tile2.setPossibleMatch(true);
+//        tile3.setPossibleMatch(true);
         return true;
     }
     return false;
@@ -215,6 +214,53 @@ bool GameFieldModel::possibleMatch3(Tile &tile1, Tile &tile2, Tile &tile3)
 
 bool GameFieldModel::hasMoves()
 {
+    auto tile = m_gameField.begin();
+    for(int i = 0; i < m_gameConfig.rows; i++)
+    {
+        for(int j = 0; j < m_gameConfig.columns; j++)
+        {
+            if(j < m_gameConfig.columns - 2 && *tile == *(tile + 2))
+            {
+                if(i > 0 && possibleMatch3(*tile, *(tile + 2), *(tile - m_gameConfig.columns + 1))) return true;
+                if(i < m_gameConfig.rows - 1 && possibleMatch3(*tile, *(tile + 2), *(tile + m_gameConfig.columns + 1))) return true;
+            }
+
+            if(i < m_gameConfig.rows - 2 && *tile == *(tile + m_gameConfig.columns * 2))
+            {
+                if(j > 0 && possibleMatch3(*tile, *(tile + m_gameConfig.columns * 2), *(tile + m_gameConfig.columns - 1))) return true;
+                if(j < m_gameConfig.columns - 1 && possibleMatch3(*tile, *(tile + m_gameConfig.columns * 2), *(tile + m_gameConfig.columns + 1))) return true;
+            }
+
+            if(j < m_gameConfig.columns - 2 && *tile == *(tile + 1))
+            {
+                if(i > 0 && possibleMatch3(*tile, *(tile + 1), *(tile + 2 - m_gameConfig.columns))) return true;
+                if(i < m_gameConfig.rows - 1 && possibleMatch3(*tile, *(tile + 1), *(tile + 2 + m_gameConfig.columns))) return true;
+                if(j < m_gameConfig.columns - 3 && possibleMatch3(*tile, *(tile + 1), *(tile + 3))) return true;
+            }
+
+            if(j > 1 && *tile == *(tile - 1))
+            {
+                if(i > 0 && possibleMatch3(*tile, *(tile - 1), *(tile - 2 - m_gameConfig.columns))) return true;
+                if(i < m_gameConfig.rows - 1 && possibleMatch3(*tile, *(tile - 1), *(tile - 2 + m_gameConfig.columns))) return true;
+                if(j > 2 && possibleMatch3(*tile, *(tile - 1), *(tile - 3))) return true;
+            }
+
+            if(i < m_gameConfig.rows - 2 && *tile == *(tile + m_gameConfig.columns))
+            {
+                if(j > 0 && possibleMatch3(*tile, *(tile + m_gameConfig.columns), *(tile - 1 + 2 * m_gameConfig.columns))) return true;
+                if(j < m_gameConfig.columns - 1 && possibleMatch3(*tile, *(tile + m_gameConfig.columns), *(tile + 1 + 2 * m_gameConfig.columns))) return true;
+                if(i < m_gameConfig.rows - 3 && possibleMatch3(*tile, *(tile + m_gameConfig.columns), *(tile + 3 * m_gameConfig.columns))) return true;
+            }
+
+            if(i > 1 && *tile == *(tile - m_gameConfig.columns))
+            {
+                if(j > 0 && possibleMatch3(*tile, *(tile - m_gameConfig.columns), *(tile - 1 - 2 * m_gameConfig.columns))) return true;
+                if(j < m_gameConfig.columns - 1 && possibleMatch3(*tile, *(tile - m_gameConfig.columns), *(tile + 1 - 2 * m_gameConfig.columns))) return true;
+                if(i > 2 && possibleMatch3(*tile, *(tile - m_gameConfig.columns), *(tile - 3 * m_gameConfig.columns))) return true;
+            }
+            tile++;
+        }
+    }
     return false;
 }
 

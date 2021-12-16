@@ -23,6 +23,7 @@ Window {
         property int previousClickedIndex: -1
         property int currentClickedIndex: -1
         property bool running: false
+        property int movesCounter: 0
 
         model: field
 
@@ -35,6 +36,9 @@ Window {
                     if(!field.swap(view.currentClickedIndex, view.previousClickedIndex)) {
                         view.currentClickedIndex = -1;
                         view.previousClickedIndex = -1;
+                    }
+                    else {
+                        view.movesCounter++;
                     }
                 }
                 else {
@@ -59,6 +63,7 @@ Window {
                             field.swap(view.currentClickedIndex, view.previousClickedIndex);
                         }
                     }
+                    //console.log("Moves: " + view.movesCounter)
                     view.currentClickedIndex = -1;
                     view.previousClickedIndex = -1;
                     if(!field.hasMoves()) {
