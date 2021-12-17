@@ -87,6 +87,7 @@ bool GameFieldModel::swap(int from, int to)
             m_gameField.move(max - 1, min);
             endMoveRows();
         }
+
         return true;
     }
     return false;
@@ -147,16 +148,22 @@ void GameFieldModel::generateBoard()
     };
 
     std::srand(time(0));
-    for(int i = 0; i < m_gameConfig.rows; i++)
+    do
     {
-        for(int j = 0; j < m_gameConfig.columns; j++)
+        for(int i = 0; i < m_gameConfig.rows; i++)
         {
-            do
+            for(int j = 0; j < m_gameConfig.columns; j++)
             {
-                m_gameField[i * m_gameConfig.columns + j] = Tile(QColor(m_gameConfig.getRandomColor()));
-            } while(checkPrevious(i, j));
+                do
+                {
+                    m_gameField[i * m_gameConfig.columns + j] = Tile(QColor(m_gameConfig.getRandomColor()));
+                } while(checkPrevious(i, j));
+            }
         }
-    }
+    } while (!hasMoves());
+    m_score = 0;
+    emit scoreChanged();
+    emit dataChanged(createIndex(0, 0), createIndex(m_gameField.size() - 1, 0));
 }
 
 bool GameFieldModel::checkForMatch()
@@ -195,6 +202,8 @@ bool GameFieldModel::match3(Tile& tile1, Tile& tile2, Tile& tile3)
         tile1.setIsMatched();
         tile2.setIsMatched();
         tile3.setIsMatched();
+        m_score += 3;
+        emit scoreChanged();
         return true;
     }
     return false;
@@ -204,9 +213,6 @@ bool GameFieldModel::possibleMatch3(Tile &tile1, Tile &tile2, Tile &tile3)
 {
     if(tile1 == tile2 && tile1 == tile3)
     {
-//        tile1.setPossibleMatch(true);
-//        tile2.setPossibleMatch(true);
-//        tile3.setPossibleMatch(true);
         return true;
     }
     return false;

@@ -21,6 +21,7 @@ class GameFieldModel : public QAbstractListModel
     Q_OBJECT
     Q_PROPERTY(int rows READ getRows FINAL CONSTANT)
     Q_PROPERTY(int columns READ getColumns FINAL CONSTANT)
+    Q_PROPERTY(int score MEMBER m_score NOTIFY scoreChanged)
 
 public:
 
@@ -60,9 +61,13 @@ private:
     QHash<int, QByteArray> m_roleNames;
 
     int m_score;
+    int m_multiplier;
 
     int getRows();
     int getColumns();
 
     GameConfig loadGameFieldConfiguration();
+
+signals:
+    void scoreChanged();
 };

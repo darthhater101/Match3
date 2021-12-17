@@ -7,12 +7,10 @@ Item {
     Rectangle {
         id: circle
         color: name
-        width: parent.width - 30
-        height: parent.height - 30
+        width: parent.width * 0.7
+        height: parent.height * 0.7
         radius: width * 0.5
         anchors.centerIn: parent
-        border.color: "navy"
-        border.width: possible ? 5 : 0
         property point centerPoint: Qt.point(width / 2, height / 2)
 
         gradient: Gradient {
@@ -21,19 +19,8 @@ Item {
             GradientStop { position: 1.0; color: Qt.darker(circle.color, 4.0) }
         }
 
-        SequentialAnimation {
-            id: anim
+        Behavior on scale {
             NumberAnimation {
-                target: circle
-                properties: "scale"
-                to: 1.2
-                duration: 200
-            }
-
-            NumberAnimation {
-                target: circle
-                properties: "scale"
-                to: 1.0
                 duration: 200
             }
         }
@@ -45,10 +32,11 @@ Item {
                                      + (circle.centerPoint.y - mouseY) * (circle.centerPoint.y - mouseY))
                 if(dist <= circle.radius)
                 {
-                    anim.start()
                     root.clicked()
                 }
             }
+            onPressed: circle.scale = 1.2
+            onReleased: circle.scale = 1.0
         }
     }
 }
