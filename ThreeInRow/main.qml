@@ -52,7 +52,8 @@ Window {
 
         model: field
 
-        onMovesCounterChanged: controlPanel.movesCounter = movesCounter
+        onAnimationMoveEnded: update(running)
+        onAnimationAddEnded: update(running)
 
         delegate: Tile {
             width: view.cellWidth
@@ -75,27 +76,23 @@ Window {
             }
         }
 
-        Connections {
-            onAnimationMoveEnded: update(running)
-            onAnimationAddEnded: update(running)
-
-            function update(running) {
-                if(!running) {
-                    if(field.checkForMatch()) {
-                        field.removeMatched();
-                        field.riseDeleted();
-                        field.add();
+        function update(running) {
+            if(!running) {
+                if(field.checkForMatch()) {
+                    controlPanel.movesCounter = movesCounter
+                    field.removeMatched();
+                    field.riseDeleted();
+                    field.addNewTiles();
+                }
+                else {
+                    if(view.currentClickedIndex !== -1 || view.previousClickedIndex !== -1) {
+                        field.swap(view.currentClickedIndex, view.previousClickedIndex);
                     }
-                    else {
-                        if(view.currentClickedIndex !== -1 || view.previousClickedIndex !== -1) {
-                            field.swap(view.currentClickedIndex, view.previousClickedIndex);
-                        }
-                    }
-                    view.currentClickedIndex = -1;
-                    view.previousClickedIndex = -1;
-                    if(!field.hasMoves()) {
-                        losePopup.open();
-                    }
+                }
+                view.currentClickedIndex = -1;
+                view.previousClickedIndex = -1;
+                if(!field.hasMoves()) {
+                    losePopup.open();
                 }
             }
         }

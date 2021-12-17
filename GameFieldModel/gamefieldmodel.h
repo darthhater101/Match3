@@ -27,9 +27,7 @@ public:
 
     enum RoleNames {
         ColorRole = Qt::UserRole,
-        MatchRole = Qt::UserRole + 2,
-        DeletedRole = Qt::UserRole + 3,
-        PossibleRole = Qt::UserRole + 4
+        DeletedRole = Qt::UserRole + 2,
     };
 
     explicit GameFieldModel(QObject *parent = nullptr);
@@ -39,18 +37,16 @@ public:
     virtual QVariant data(const QModelIndex &index, int role) const override;
 
 
-    bool match3(Tile& tile1, Tile& tile2, Tile& tile3);
+    int match3(Tile& tile1, Tile& tile2, Tile& tile3);
     bool possibleMatch3(Tile& tile1, Tile& tile2, Tile& tile3);
 
     Q_INVOKABLE bool hasMoves();
-
     Q_INVOKABLE void generateBoard();
-
     Q_INVOKABLE bool checkForMatch();
     Q_INVOKABLE bool swap(int first, int second);
     Q_INVOKABLE void riseDeleted();
     Q_INVOKABLE void removeMatched();
-    Q_INVOKABLE void add();
+    Q_INVOKABLE void addNewTiles();
 
 protected:
     virtual QHash<int, QByteArray> roleNames() const override;

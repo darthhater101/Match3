@@ -1,6 +1,6 @@
 #include "tile.h"
 
-Tile::Tile(const QColor& color) : m_color(color), m_isPossibleMatch(false), m_state(STATE::NONE)
+Tile::Tile(const QColor& color) : m_color(color), m_state(STATE::NONE)
 {
 
 }
@@ -28,16 +28,6 @@ bool Tile::isDeleted() const
 void Tile::setDeleted()
 {
     m_state = STATE::DELETED;
-}
-
-bool Tile::isPossibleMatch() const
-{
-    return m_isPossibleMatch;
-}
-
-void Tile::setPossibleMatch(bool possibleMatch)
-{
-    m_isPossibleMatch = possibleMatch;
 }
 
 bool Tile::operator==(const Tile &other) const

@@ -21,14 +21,11 @@ public:
     void setIsMatched();
     bool isDeleted() const;
     void setDeleted();
-    bool isPossibleMatch() const;
-    void setPossibleMatch(bool possibleMatch);
 
     bool operator==(const Tile& other) const;
 
 private:
     QColor m_color;
-    bool m_isPossibleMatch;
     STATE m_state;
 };
 

@@ -15,8 +15,7 @@ Rectangle {
         property int margins: 50
         anchors.fill: parent
         Text {
-            anchors.right: restartButton.left
-            anchors.rightMargin: row.margins
+            Layout.alignment: Qt.AlignRight
             text: "Moves: " + root.movesCounter
             font.pixelSize: 22
         }
@@ -28,7 +27,7 @@ Rectangle {
             color: area.pressed ? Qt.lighter(root.color, 1.2) : root.color
             border.width: 3
             border.color: "saddlebrown"
-            anchors.centerIn: parent
+            Layout.alignment: Qt.AlignCenter
             Text {
                 text: "Restart"
                 font.pixelSize: 22
@@ -41,8 +40,6 @@ Rectangle {
             }
         }
         Text {
-            anchors.left: restartButton.right
-            anchors.leftMargin: row.margins
             text: "Score: " + root.scoreCounter
             font.pixelSize: 22
         }
