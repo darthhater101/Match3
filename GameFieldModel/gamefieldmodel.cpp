@@ -12,8 +12,6 @@
 #include <cstdlib>
 #include <cmath>
 #include <algorithm>
-#include <chrono>
-#include <thread>
 
 
 QColor GameConfig::getRandomColor()
@@ -22,10 +20,11 @@ QColor GameConfig::getRandomColor()
 }
 
 GameFieldModel::GameFieldModel(QObject *parent)
-    : QAbstractListModel(parent), m_score(0)
+    : QAbstractListModel(parent), m_score(0), m_moves(0)
 {
     m_roleNames[ColorRole] = "name";
     m_roleNames[DeletedRole] = "deleted";
+    m_roleNames[MatchedRole] = "matched";
 
     m_gameConfig = loadGameFieldConfiguration();
     m_gameField.resize(m_gameConfig.rows * m_gameConfig.columns);
@@ -58,6 +57,8 @@ QVariant GameFieldModel::data(const QModelIndex &index, int role) const
         return m_gameField[row].getColor().name();
     case DeletedRole:
         return m_gameField[row].isDeleted();
+    case MatchedRole:
+        return m_gameField[row].isMatched();
     }
 
     return QVariant();
@@ -106,6 +107,9 @@ GameConfig GameFieldModel::loadGameFieldConfiguration()
     QJsonArray arr = doc.object().value(QString("colors")).toArray();
     int rows = doc.object().value(QString("rows")).toInt();
     int columns = doc.object().value(QString("columns")).toInt();
+
+    rows = rows < 4? 4 : rows > 20 ? 20 : rows;
+    columns = columns < 4 ? 4 : columns > 20 ? 20 : columns;
 
     QVector<QColor> colors;
     for(int i = 0; i < arr.size(); i++)
@@ -204,6 +208,81 @@ bool GameFieldModel::checkForMatch()
     return wasMatched;
 }
 
+int GameFieldModel::check(int index)
+{
+    int row = std::floor(index / m_gameConfig.columns);
+    int column = index % m_gameConfig.columns;
+    int matches = 0;
+    m_gameField[row * m_gameConfig.columns + column].setWasTraversed(true);
+
+    auto checkForMatchLmd = [=, &matches](int direction, int limit, int shift){
+        if(direction > 0 && direction < limit - 1)
+        {
+            int match = match3(m_gameField[row * m_gameConfig.columns + column],
+                           m_gameField[row * m_gameConfig.columns + column - shift],
+                           m_gameField[row * m_gameConfig.columns + column + shift]);
+
+            if(match > 0)
+            {
+                matches += match;
+            }
+        }
+    };
+
+    checkForMatchLmd(row, m_gameConfig.rows, m_gameConfig.columns);
+    checkForMatchLmd(column, m_gameConfig.columns, 1);
+
+    if(column > 0 && m_gameField[row * m_gameConfig.columns + column] == m_gameField[row * m_gameConfig.columns + column - 1]
+            && !m_gameField[row * m_gameConfig.columns + column - 1].wasTraversed())
+    {
+        matches += check(index - 1);
+    }
+    if(column < m_gameConfig.columns - 1 && m_gameField[row * m_gameConfig.columns + column] == m_gameField[row * m_gameConfig.columns + column + 1]
+            && !m_gameField[row * m_gameConfig.columns + column + 1].wasTraversed())
+    {
+        matches += check(index + 1);
+    }
+    if(row > 0 && m_gameField[row * m_gameConfig.columns + column] == m_gameField[row * m_gameConfig.columns + column - m_gameConfig.columns]
+            && !m_gameField[row * m_gameConfig.columns + column - m_gameConfig.columns].wasTraversed())
+    {
+        matches += check(index - m_gameConfig.columns);
+    }
+    if(row < m_gameConfig.rows - 1 && m_gameField[row * m_gameConfig.columns + column] == m_gameField[row * m_gameConfig.columns + column + m_gameConfig.columns]
+            && !m_gameField[row * m_gameConfig.columns + column + m_gameConfig.columns].wasTraversed())
+    {
+        matches += check(index + m_gameConfig.columns);
+    }
+
+    m_gameField[row * m_gameConfig.columns + column].setWasTraversed(false);
+
+    return matches;
+}
+
+bool GameFieldModel::checkForMatch2(int index)
+{
+    if(index < 0)
+    {
+        return false;
+    }
+    int matches = check(index);
+    if(matches > 0)
+    {
+
+        if(matches % 3 == 0 && matches != 3)
+        {
+            m_score += matches + matches / 3 + 1;
+        }
+        else
+        {
+            m_score += matches > 3 ? matches + std::round(matches / 3) : matches;
+        }
+        emit scoreChanged();
+
+        return true;
+    }
+    return false;
+}
+
 int GameFieldModel::match3(Tile& tile1, Tile& tile2, Tile& tile3)
 {
     int match = 0;
@@ -223,7 +302,7 @@ int GameFieldModel::match3(Tile& tile1, Tile& tile2, Tile& tile3)
     return match;
 }
 
-bool GameFieldModel::possibleMatch3(Tile &tile1, Tile &tile2, Tile &tile3)
+bool GameFieldModel::possibleMatch3(const Tile &tile1, const Tile &tile2, const Tile &tile3)
 {
     return tile1 == tile2 && tile1 == tile3;
 }
@@ -325,6 +404,18 @@ void GameFieldModel::addNewTiles()
             endInsertRows();
         }
     }
+}
+
+void GameFieldModel::incrementMovesCounter()
+{
+    m_moves++;
+    emit movesChanged();
+}
+
+void GameFieldModel::resetMovesCounter()
+{
+    m_moves = 0;
+    emit movesChanged();
 }
 
 QHash<int, QByteArray> GameFieldModel::roleNames() const

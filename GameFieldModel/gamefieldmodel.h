@@ -22,12 +22,14 @@ class GameFieldModel : public QAbstractListModel
     Q_PROPERTY(int rows READ getRows FINAL CONSTANT)
     Q_PROPERTY(int columns READ getColumns FINAL CONSTANT)
     Q_PROPERTY(int score MEMBER m_score NOTIFY scoreChanged)
+    Q_PROPERTY(int moves MEMBER m_moves NOTIFY movesChanged)
 
 public:
 
     enum RoleNames {
         ColorRole = Qt::UserRole,
         DeletedRole = Qt::UserRole + 2,
+        MatchedRole = Qt::UserRole + 3
     };
 
     explicit GameFieldModel(QObject *parent = nullptr);
@@ -38,7 +40,9 @@ public:
 
 
     int match3(Tile& tile1, Tile& tile2, Tile& tile3);
-    bool possibleMatch3(Tile& tile1, Tile& tile2, Tile& tile3);
+    bool possibleMatch3(const Tile& tile1, const Tile& tile2, const Tile& tile3);
+
+    int check(int index);
 
     Q_INVOKABLE bool hasMoves();
     Q_INVOKABLE void generateBoard();
@@ -47,6 +51,10 @@ public:
     Q_INVOKABLE void riseDeleted();
     Q_INVOKABLE void removeMatched();
     Q_INVOKABLE void addNewTiles();
+    Q_INVOKABLE void incrementMovesCounter();
+    Q_INVOKABLE void resetMovesCounter();
+
+    Q_INVOKABLE bool checkForMatch2(int index);
 
 protected:
     virtual QHash<int, QByteArray> roleNames() const override;
@@ -57,7 +65,7 @@ private:
     QHash<int, QByteArray> m_roleNames;
 
     int m_score;
-    int m_multiplier;
+    int m_moves;
 
     int getRows();
     int getColumns();
@@ -66,4 +74,5 @@ private:
 
 signals:
     void scoreChanged();
+    void movesChanged();
 };

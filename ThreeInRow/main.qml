@@ -16,6 +16,7 @@ Window {
     GameFieldModel {
         id: field
         onScoreChanged: controlPanel.scoreCounter = score
+        onMovesChanged: controlPanel.movesCounter = moves
     }
 
     ControlPanel {
@@ -24,9 +25,10 @@ Window {
         height: 50
         color: root.color
         scoreCounter: field.score
+        movesCounter: field.moves
         onClicked: {
             losePopup.close();
-            view.movesCounter = 0
+            field.moves = 0;
             field.generateBoard();
         }
     }
@@ -47,52 +49,70 @@ Window {
 
         property int previousClickedIndex: -1
         property int currentClickedIndex: -1
-        property bool running: false
-        property int movesCounter: 0
 
         model: field
 
-        onAnimationMoveEnded: update(running)
-        onAnimationAddEnded: update(running)
+        onAnimationAddEnded: {
+            for(var i = 0; i < viewIndexes.length; i++)
+            {
+                field.checkForMatch2(viewIndexes[i]);
+            }
+            field.removeMatched();
+            field.riseDeleted();
+            field.addNewTiles();
+        }
+        onAnimationMoveEnded: {
+            if(viewIndexes.length === 1)
+            {
+                viewIndexes.push(viewIndexes[0] - 1);
+            }
+
+            var swapBack = true;
+
+            for(var i = 0; i < viewIndexes.length; i++)
+            {
+                if(field.checkForMatch2(viewIndexes[i]))
+                {
+                    swapBack = false;
+                }
+            }
+            if(swapBack && previousClickedIndex !== -1 && currentClickedIndex !== -1)
+            {
+                field.swap(currentClickedIndex, previousClickedIndex);
+            }
+            else
+            {
+                field.moves++;
+            }
+
+            field.removeMatched();
+            field.riseDeleted();
+            field.addNewTiles();
+            previousClickedIndex = -1;
+            currentClickedIndex = -1;
+        }
 
         delegate: Tile {
             width: view.cellWidth
             height: view.cellHeight
             enabled: !losePopup.opened
             onClicked: {
-                if(view.previousClickedIndex !== -1) {
+                if(view.currentClickedIndex === -1)
+                {
                     view.currentClickedIndex = index;
+                }
+                else if(view.previousClickedIndex === -1)
+                {
+                    view.previousClickedIndex = view.currentClickedIndex;
+                    view.currentClickedIndex = index;
+                }
+
+                if(view.currentClickedIndex !== -1 && view.previousClickedIndex !== -1)
+                {
                     if(!field.swap(view.currentClickedIndex, view.previousClickedIndex)) {
                         view.currentClickedIndex = -1;
                         view.previousClickedIndex = -1;
                     }
-                    else {
-                        view.movesCounter++;
-                    }
-                }
-                else {
-                    view.previousClickedIndex = index;
-                }
-            }
-        }
-
-        function update(running) {
-            if(!running) {
-                if(field.checkForMatch()) {
-                    controlPanel.movesCounter = movesCounter
-                    field.removeMatched();
-                    field.riseDeleted();
-                    field.addNewTiles();
-                }
-                else {
-                    if(view.currentClickedIndex !== -1 || view.previousClickedIndex !== -1) {
-                        field.swap(view.currentClickedIndex, view.previousClickedIndex);
-                    }
-                }
-                view.currentClickedIndex = -1;
-                view.previousClickedIndex = -1;
-                if(!field.hasMoves()) {
-                    losePopup.open();
                 }
             }
         }

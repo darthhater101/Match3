@@ -1,6 +1,6 @@
 #include "tile.h"
 
-Tile::Tile(const QColor& color) : m_color(color), m_state(STATE::NONE)
+Tile::Tile(const QColor& color) : m_color(color), m_state(STATE::NONE), m_wasTraversed(false)
 {
 
 }
@@ -28,6 +28,16 @@ bool Tile::isDeleted() const
 void Tile::setDeleted()
 {
     m_state = STATE::DELETED;
+}
+
+bool Tile::wasTraversed() const
+{
+    return m_wasTraversed;
+}
+
+void Tile::setWasTraversed(bool wasTraversed)
+{
+    m_wasTraversed = wasTraversed;
 }
 
 bool Tile::operator==(const Tile &other) const

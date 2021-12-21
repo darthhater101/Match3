@@ -7,15 +7,17 @@ GridView {
     displaced: moveAnimation
     add: addAnimation
 
-    signal animationMoveEnded(bool running)
-    signal animationAddEnded(bool running)
+    signal animationAddEnded(variant viewIndexes)
+    signal animationMoveEnded(variant viewIndexes)
 
     Transition {
         id: addAnimation
         NumberAnimation {
             property: "y"; from: -100; duration: 400
         }
-        onRunningChanged: animationAddEnded(running)
+        onRunningChanged: if(!running) {
+                              animationAddEnded(ViewTransition.targetIndexes)
+                          }
     }
 
     Transition {
@@ -23,7 +25,9 @@ GridView {
         NumberAnimation {
             properties: "x, y"; duration: 400;
         }
-        onRunningChanged: animationMoveEnded(running)
+        onRunningChanged: if(!running) {
+                              animationMoveEnded(ViewTransition.targetIndexes);
+                          }
     }
 
 }

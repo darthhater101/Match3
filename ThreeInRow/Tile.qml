@@ -13,6 +13,7 @@ Item {
         anchors.centerIn: parent
         property point centerPoint: Qt.point(width / 2, height / 2)
 
+
         gradient: Gradient {
             GradientStop { position: 0.0; color: Qt.lighter(circle.color, 1.5) }
             GradientStop { position: 0.2; color: circle.color }
