@@ -111,6 +111,22 @@ GameConfig GameFieldModel::loadGameFieldConfiguration()
     rows = rows < 4? 4 : rows > 20 ? 20 : rows;
     columns = columns < 4 ? 4 : columns > 20 ? 20 : columns;
 
+    if(arr.size() < 3)
+    {
+        QString colors[3] = { "red", "green", "blue" };
+        for(int i = 0; i < 3; i++)
+        {
+            if(!arr.contains(QJsonValue(colors[i])))
+            {
+                arr.push_back(QJsonValue(colors[i]));
+            }
+            if(arr.size() >= 3)
+            {
+                break;
+            }
+        }
+    }
+
     QVector<QColor> colors;
     for(int i = 0; i < arr.size(); i++)
     {
@@ -267,7 +283,6 @@ bool GameFieldModel::checkForMatch2(int index)
     int matches = check(index);
     if(matches > 0)
     {
-
         if(matches % 3 == 0 && matches != 3)
         {
             m_score += matches + matches / 3 + 1;

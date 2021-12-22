@@ -98,31 +98,54 @@ Window {
             currentClickedIndex = -1;
         }
 
-        delegate: Tile {
+//        delegate: Tile {
+//            width: view.cellWidth
+//            height: view.cellHeight
+//            enabled: !losePopup.opened
+//            onClicked: {
+//                if(view.currentClickedIndex === -1) {
+//                    view.currentClickedIndex = index;
+//                }
+//                else if(view.previousClickedIndex === -1) {
+//                    view.previousClickedIndex = view.currentClickedIndex;
+//                    view.currentClickedIndex = index;
+//                }
+
+//                if(view.currentClickedIndex !== -1 && view.previousClickedIndex !== -1) {
+//                    if(!field.swap(view.currentClickedIndex, view.previousClickedIndex)) {
+//                        view.currentClickedIndex = -1;
+//                        view.previousClickedIndex = -1;
+//                    }
+//                    else {
+//                        view.incrementMoves = true;
+//                    }
+//                }
+//            }
+//        }
+        delegate: DropArea {
+            id: delegateRoot
+
             width: view.cellWidth
             height: view.cellHeight
-            enabled: !losePopup.opened
-            onClicked: {
-                if(view.currentClickedIndex === -1)
-                {
-                    view.currentClickedIndex = index;
-                }
-                else if(view.previousClickedIndex === -1)
-                {
-                    view.previousClickedIndex = view.currentClickedIndex;
-                    view.currentClickedIndex = index;
-                }
 
-                if(view.currentClickedIndex !== -1 && view.previousClickedIndex !== -1)
-                {
-                    if(!field.swap(view.currentClickedIndex, view.previousClickedIndex)) {
-                        view.currentClickedIndex = -1;
-                        view.previousClickedIndex = -1;
-                    }
-                    else {
-                        view.incrementMoves = true;
-                    }
-                }
+            property variant clr: name
+            property bool delegateDeleted: deleted
+            property int visualIndex: index
+
+            onEntered: function(drag) {
+                field.swap((drag.source as Tile).visualIndex, tile.visualIndex)
+            }
+
+            Tile {
+                id: tile
+                dragParent: view
+                areaParent: delegateRoot
+                visualIndex: delegateRoot.visualIndex
+                color: delegateRoot.clr
+                deleted: delegateRoot.delegateDeleted
+
+                width: delegateRoot.width
+                height: delegateRoot.height
             }
         }
     }
