@@ -49,6 +49,7 @@ Window {
 
         property int previousClickedIndex: -1
         property int currentClickedIndex: -1
+        property bool incrementMoves: false
 
         model: field
 
@@ -79,10 +80,15 @@ Window {
             if(swapBack && previousClickedIndex !== -1 && currentClickedIndex !== -1)
             {
                 field.swap(currentClickedIndex, previousClickedIndex);
+                incrementMoves = false;
             }
             else
             {
-                field.moves++;
+                if(incrementMoves)
+                {
+                    field.moves++;
+                    incrementMoves = false;
+                }
             }
 
             field.removeMatched();
@@ -112,6 +118,9 @@ Window {
                     if(!field.swap(view.currentClickedIndex, view.previousClickedIndex)) {
                         view.currentClickedIndex = -1;
                         view.previousClickedIndex = -1;
+                    }
+                    else {
+                        view.incrementMoves = true;
                     }
                 }
             }
