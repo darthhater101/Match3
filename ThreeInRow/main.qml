@@ -54,13 +54,27 @@ Window {
         model: field
 
         onAnimationAddEnded: {
+            var wasMatched = false
             for(var i = 0; i < viewIndexes.length; i++)
             {
-                field.checkForMatch2(viewIndexes[i]);
+                if(field.checkForMatch2(viewIndexes[i]))
+                {
+                    wasMatched = true
+                }
             }
-            field.removeMatched();
-            field.riseDeleted();
-            field.addNewTiles();
+            if(wasMatched)
+            {
+                field.removeMatched();
+                field.riseDeleted();
+                field.addNewTiles();
+            }
+            else
+            {
+                if(!field.hasMoves())
+                {
+                    losePopup.open();
+                }
+            }
         }
         onAnimationMoveEnded: {
             if(viewIndexes.length === 1)
@@ -89,11 +103,10 @@ Window {
                     field.moves++;
                     incrementMoves = false;
                 }
+                field.removeMatched();
+                field.riseDeleted();
+                field.addNewTiles();
             }
-
-            field.removeMatched();
-            field.riseDeleted();
-            field.addNewTiles();
             previousClickedIndex = -1;
             currentClickedIndex = -1;
         }
