@@ -64,7 +64,7 @@ QVariant GameFieldModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-bool GameFieldModel::swap(int from, int to)
+bool GameFieldModel::moveSwap(int from, int to)
 {
     if((std::abs(from - to) == 1 && std::floor(from / m_gameConfig.columns) == std::floor(to / m_gameConfig.columns))
             || std::abs(from - to) == m_gameConfig.columns)
@@ -83,6 +83,19 @@ bool GameFieldModel::swap(int from, int to)
             endMoveRows();
         }
 
+        return true;
+    }
+
+    return false;
+}
+
+bool GameFieldModel::swap(int from, int to)
+{
+    if((std::abs(from - to) == 1 && std::floor(from / m_gameConfig.columns) == std::floor(to / m_gameConfig.columns))
+            || std::abs(from - to) == m_gameConfig.columns)
+    {
+        m_gameField.swapItemsAt(from, to);
+        emit dataChanged(createIndex(0, 0), createIndex(m_gameField.size(), 0));
         return true;
     }
     return false;
@@ -274,7 +287,7 @@ int GameFieldModel::check(int index)
     return matches;
 }
 
-bool GameFieldModel::checkForMatch2(int index)
+bool GameFieldModel::checkForMatchSmart(int index)
 {
     if(index < 0)
     {
@@ -384,7 +397,7 @@ void GameFieldModel::riseDeleted()
             {
                 for(int row = i - 1; row >= 0; row--)
                 {
-                    swap(row * m_gameConfig.columns + j, (row + 1) * m_gameConfig.columns + j);
+                    moveSwap(row * m_gameConfig.columns + j, (row + 1) * m_gameConfig.columns + j);
                 }
             }
         }

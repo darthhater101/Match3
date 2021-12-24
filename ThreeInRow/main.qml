@@ -47,105 +47,93 @@ Window {
         cellWidth: width / field.columns
         cellHeight: height / field.rows
 
-        property int previousClickedIndex: -1
-        property int currentClickedIndex: -1
-        property bool incrementMoves: false
+        property int holdIndex: -1
+        property int targetIndex: -1
 
         model: field
 
         onAnimationAddEnded: {
+            var wasMatched = false;
             for(var i = 0; i < viewIndexes.length; i++)
             {
-                field.checkForMatch2(viewIndexes[i]);
+                if(field.checkForMatchSmart(viewIndexes[i]))
+                {
+                    wasMatched = true;
+                }
             }
-            field.removeMatched();
-            field.riseDeleted();
-            field.addNewTiles();
-        }
-        onAnimationMoveEnded: {
-            if(viewIndexes.length === 1)
+            if(wasMatched)
             {
-                viewIndexes.push(viewIndexes[0] - 1);
+                field.removeMatched();
+                field.riseDeleted();
+                field.addNewTiles();
             }
+            else
+            {
+                if(!field.hasMoves())
+                {
+                    losePopup.open();
+                }
+            }
+        }
 
+        onAnimationMoveEnded: {
+            var wasMatched = false;
+            for(var i = 0; i < viewIndexes.length; i++)
+            {
+                if(field.checkForMatchSmart(viewIndexes[i]))
+                {
+                    wasMatched = true;
+                }
+            }
+            if(wasMatched)
+            {
+                field.removeMatched();
+                field.riseDeleted();
+                field.addNewTiles();
+            }
+        }
+
+        function checkUserMove() {
+            var viewIndexes = [view.targetIndex, view.holdIndex]
             var swapBack = true;
 
             for(var i = 0; i < viewIndexes.length; i++)
             {
-                if(field.checkForMatch2(viewIndexes[i]))
+                if(field.checkForMatchSmart(viewIndexes[i]))
                 {
                     swapBack = false;
                 }
             }
-            if(swapBack && previousClickedIndex !== -1 && currentClickedIndex !== -1)
+            if(swapBack)
             {
-                field.swap(currentClickedIndex, previousClickedIndex);
-                incrementMoves = false;
+                field.moveSwap(targetIndex, holdIndex);
             }
             else
             {
-                if(incrementMoves)
-                {
-                    field.moves++;
-                    incrementMoves = false;
-                }
+                field.moves++;
+                field.removeMatched();
+                field.riseDeleted();
+                field.addNewTiles();
             }
-
-            field.removeMatched();
-            field.riseDeleted();
-            field.addNewTiles();
-            previousClickedIndex = -1;
-            currentClickedIndex = -1;
+            targetIndex = -1
+            holdIndex = -1
         }
 
-//        delegate: Tile {
-//            width: view.cellWidth
-//            height: view.cellHeight
-//            enabled: !losePopup.opened
-//            onClicked: {
-//                if(view.currentClickedIndex === -1) {
-//                    view.currentClickedIndex = index;
-//                }
-//                else if(view.previousClickedIndex === -1) {
-//                    view.previousClickedIndex = view.currentClickedIndex;
-//                    view.currentClickedIndex = index;
-//                }
 
-//                if(view.currentClickedIndex !== -1 && view.previousClickedIndex !== -1) {
-//                    if(!field.swap(view.currentClickedIndex, view.previousClickedIndex)) {
-//                        view.currentClickedIndex = -1;
-//                        view.previousClickedIndex = -1;
-//                    }
-//                    else {
-//                        view.incrementMoves = true;
-//                    }
-//                }
-//            }
-//        }
-        delegate: DropArea {
-            id: delegateRoot
+        delegate: Tile {
+            id: tile
 
             width: view.cellWidth
             height: view.cellHeight
 
-            property variant clr: name
-            property bool delegateDeleted: deleted
-            property int visualIndex: index
-
-            onEntered: function(drag) {
-                field.swap((drag.source as Tile).visualIndex, tile.visualIndex)
+            onEntered: {
+                view.holdIndex = holdIndex
+                view.targetIndex = targetIndex
             }
 
-            Tile {
-                id: tile
-                dragParent: view
-                areaParent: delegateRoot
-                visualIndex: delegateRoot.visualIndex
-                color: delegateRoot.clr
-                deleted: delegateRoot.delegateDeleted
-
-                width: delegateRoot.width
-                height: delegateRoot.height
+            onDropped: {
+                field.swap(view.holdIndex, view.targetIndex)
+                view.checkUserMove();
             }
         }
     }

@@ -3,57 +3,91 @@ import QtQuick 2.15
 Item {
     id: root
     signal clicked
+    signal dropped()
+    signal entered(int holdIndex, int targetIndex)
+    property Item currentItem: Item {}
+    property bool isHorizontal: false
 
-    property Item dragParent: undefined
-    property Item areaParent: undefined
-    property int visualIndex: 0
-    property alias color: circle.color
-    property bool deleted: false
-    //visible: !deleted
+    visible: !deleted
 
-    DragHandler {
-        id: dragHandler
-        yAxis.minimum: areaParent.y - root.height
-        yAxis.maximum: areaParent.y + root.height
-        xAxis.minimum: areaParent.x - root.width
-        xAxis.maximum: areaParent.x + root.width
-    }
+    DropArea {
+        id: dropArea
+        anchors.fill: parent
+        onEntered: {
+            if(drag.source.rectIndex !== index)
+            {
+                circle.animationEnabled = true
+                var offset = 0;
 
-    Drag.active: dragHandler.active
-    Drag.source: root
-    Drag.hotSpot.x: 36
-    Drag.hotSpot.y: 36
-
-    states: [
-        State {
-            when: dragHandler.active
-            ParentChange {
-                target: root
-                parent: root.dragParent
+                if(Math.abs(drag.source.rectIndex - index) === 1)
+                {
+                    offset = root.width
+                    if(drag.source.rectIndex < index)
+                    {
+                        offset = -offset
+                    }
+                    circle.anchors.horizontalCenterOffset = offset
+                    isHorizontal = true
+                }
+                else
+                {
+                    offset = root.height
+                    if(drag.source.rectIndex < index)
+                    {
+                        offset = -offset
+                    }
+                    circle.anchors.verticalCenterOffset = offset
+                    isHorizontal = false
+                }
+                root.currentItem = circle
+                root.entered(drag.source.rectIndex, index)
             }
-
-            AnchorChanges {
-                target: root
-                anchors.horizontalCenter: undefined
-                anchors.verticalCenter: undefined
-            }
-
-            PropertyChanges {
-                target: circle
-                scale: 1.2
+            else
+            {
+                root.entered(drag.source.rectIndex, index)
             }
         }
-    ]
+        onDropped: {
+            root.currentItem.animationEnabled = false
+            if(isHorizontal)
+            {
+                root.currentItem.anchors.horizontalCenterOffset = 0
+            }
+            else
+            {
+                root.currentItem.anchors.verticalCenterOffset = 0
+            }
+
+            root.currentItem = null
+        }
+
+        onExited: {
+            if(isHorizontal)
+            {
+                root.currentItem.anchors.horizontalCenterOffset = 0
+            }
+            else
+            {
+                root.currentItem.anchors.verticalCenterOffset = 0
+            }
+
+            root.currentItem = null
+        }
+    }
+
+
 
     Rectangle {
         id: circle
         color: name
-        width: parent.width * 0.7
-        height: parent.height * 0.7
+        width: root.width * 0.7
+        height: root.height * 0.7
         radius: width * 0.5
-        anchors.centerIn: parent
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
         property point centerPoint: Qt.point(width / 2, height / 2)
-
+        property int rectIndex: index
+        property bool animationEnabled: true
 
         gradient: Gradient {
             GradientStop { position: 0.0; color: Qt.lighter(circle.color, 1.5) }
@@ -61,24 +95,50 @@ Item {
             GradientStop { position: 1.0; color: Qt.darker(circle.color, 4.0) }
         }
 
-        Behavior on scale {
+        states: [
+            State {
+                name: "drag"
+                when: dragArea.drag.active
+                AnchorChanges {
+                    target: circle
+                    anchors.verticalCenter: undefined
+                    anchors.horizontalCenter: undefined
+                }
+            }
+        ]
+
+        Behavior on anchors.horizontalCenterOffset {
+            enabled: circle.animationEnabled
             NumberAnimation {
-                duration: 200
+                duration: 400
             }
         }
 
-//        MouseArea {
-//            anchors.fill: parent
-//            onClicked: {
-//                var dist = Math.sqrt((circle.centerPoint.x - mouseX) * (circle.centerPoint.x - mouseX)
-//                                     + (circle.centerPoint.y - mouseY) * (circle.centerPoint.y - mouseY))
-//                if(dist <= circle.radius)
-//                {
-//                    root.clicked()
-//                }
-//            }
-//            onPressed: circle.scale = 1.2
-//            onReleased: circle.scale = 1.0
-//        }
+        Behavior on anchors.verticalCenterOffset {
+            enabled: circle.animationEnabled
+            NumberAnimation {
+                duration: 400
+            }
+        }
+
+        Drag.active: dragArea.drag.active
+        Drag.hotSpot.x: 25
+        Drag.hotSpot.y: 25
+
+    }
+
+    MouseArea {
+        id: dragArea
+        anchors.fill: parent
+        drag.target: circle
+        drag.maximumX: root.width + (root.width * 0.3) / 2
+        drag.minimumX: -root.width + (root.width * 0.3) / 2
+        drag.maximumY: root.height + (root.height * 0.3) / 2
+        drag.minimumY: -root.height + (root.height * 0.3) / 2
+
+        onReleased: {
+            circle.Drag.drop()
+            root.dropped()
+        }
     }
 }

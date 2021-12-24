@@ -10,14 +10,18 @@ GridView {
     signal animationAddEnded(variant viewIndexes)
     signal animationMoveEnded(variant viewIndexes)
 
+    property alias moveAnimationEnabled: moveAnimation.enabled
+
     Transition {
         id: addAnimation
         NumberAnimation {
             property: "y"; from: -100; duration: 400
         }
-        onRunningChanged: if(!running) {
-                              animationAddEnded(ViewTransition.targetIndexes)
-                          }
+        onRunningChanged: {
+            if(!running) {
+                animationAddEnded(ViewTransition.targetIndexes);
+            }
+        }
     }
 
     Transition {
@@ -25,9 +29,11 @@ GridView {
         NumberAnimation {
             properties: "x, y"; duration: 400;
         }
-        onRunningChanged: if(!running) {
-                              animationMoveEnded(ViewTransition.targetIndexes);
-                          }
+        onRunningChanged: {
+            if(!running) {
+                animationMoveEnded(ViewTransition.targetIndexes);
+            }
+        }
     }
 
 }

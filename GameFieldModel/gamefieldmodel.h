@@ -38,23 +38,21 @@ public:
     virtual int rowCount(const QModelIndex &parent) const override;
     virtual QVariant data(const QModelIndex &index, int role) const override;
 
-
     int match3(Tile& tile1, Tile& tile2, Tile& tile3);
     bool possibleMatch3(const Tile& tile1, const Tile& tile2, const Tile& tile3);
-
     int check(int index);
 
+    Q_INVOKABLE bool swap(int from, int to);
     Q_INVOKABLE bool hasMoves();
     Q_INVOKABLE void generateBoard();
     Q_INVOKABLE bool checkForMatch();
-    Q_INVOKABLE bool swap(int first, int second);
+    Q_INVOKABLE bool moveSwap(int from, int to);
     Q_INVOKABLE void riseDeleted();
     Q_INVOKABLE void removeMatched();
     Q_INVOKABLE void addNewTiles();
     Q_INVOKABLE void incrementMovesCounter();
     Q_INVOKABLE void resetMovesCounter();
-
-    Q_INVOKABLE bool checkForMatch2(int index);
+    Q_INVOKABLE bool checkForMatchSmart(int index);
 
 protected:
     virtual QHash<int, QByteArray> roleNames() const override;
