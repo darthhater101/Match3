@@ -9,11 +9,10 @@ Rectangle {
     z: 1
 
     Rectangle {
-        width: 300
         height: root.height
         color: root.color
         anchors.left: parent.left
-        anchors.leftMargin: 50
+        anchors.right: restartButton.left
         Text {
             anchors.centerIn: parent
             text: "Moves: " + root.movesCounter
@@ -41,11 +40,10 @@ Rectangle {
         }
     }
     Rectangle {
-        width: 300
         height: root.height
         color: root.color
         anchors.right: parent.right
-        anchors.rightMargin: 50
+        anchors.left: restartButton.right
         Text {
             anchors.centerIn: parent
             text: "Score: " + root.scoreCounter

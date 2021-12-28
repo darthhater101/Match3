@@ -9,6 +9,8 @@ Window {
     maximumHeight: ((field.rows * 100) + 50) > 950 ? 950 : (field.rows * 100) + 50
     minimumWidth: maximumWidth
     minimumHeight: maximumHeight
+    width: maximumWidth
+    height: maximumHeight
     visible: true
     title: qsTr("Hello World")
     color: "burlywood"
@@ -23,12 +25,12 @@ Window {
         id: controlPanel
         width: parent.width
         height: 50
+        anchors.top: parent.top
         color: root.color
         scoreCounter: field.score
         movesCounter: field.moves
         onClicked: {
             losePopup.close();
-            field.moves = 0;
             field.generateBoard();
         }
     }
@@ -44,8 +46,8 @@ Window {
         anchors.top: controlPanel.bottom
         anchors.bottom: parent.bottom
         width: root.width
-        cellWidth: width / field.columns
-        cellHeight: height / field.rows
+        cellWidth: width < height ? height / field.rows : width / field.columns
+        cellHeight: cellWidth
 
         property int holdIndex: -1
         property int targetIndex: -1
@@ -115,8 +117,8 @@ Window {
                 field.riseDeleted();
                 field.addNewTiles();
             }
-            targetIndex = -1
-            holdIndex = -1
+            targetIndex = -1;
+            holdIndex = -1;
         }
 
 
@@ -127,12 +129,12 @@ Window {
             height: view.cellHeight
 
             onEntered: {
-                view.holdIndex = holdIndex
-                view.targetIndex = targetIndex
+                view.holdIndex = holdIndex;
+                view.targetIndex = targetIndex;
             }
 
             onDropped: {
-                field.swap(view.holdIndex, view.targetIndex)
+                field.swap(view.holdIndex, view.targetIndex);
                 view.checkUserMove();
             }
         }

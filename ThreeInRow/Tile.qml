@@ -7,6 +7,7 @@ Item {
     signal entered(int holdIndex, int targetIndex)
     property Item currentItem: null
     property bool isHorizontal: false
+    property bool wasDropped: false
 
     visible: !deleted
 
@@ -139,6 +140,8 @@ Item {
         drag.minimumX: -root.width + (root.width * 0.3) / 2
         drag.maximumY: root.height + (root.height * 0.3) / 2
         drag.minimumY: -root.height + (root.height * 0.3) / 2
+        drag.axis: Drag.XAxis
+        drag.threshold: 20
 
         property bool axisCanBeChanged: true
         property int shiftX: 0
@@ -151,15 +154,16 @@ Item {
         onPositionChanged: {
             if(axisCanBeChanged)
             {
-                if(Math.abs(shiftX) > Math.abs(shiftY))
+                if(Math.abs(shiftX) > Math.abs(shiftY) + drag.threshold)
                 {
                     drag.axis = Drag.XAxis;
+                    axisCanBeChanged = false;
                 }
-                else if(Math.abs(shiftY) > Math.abs(shiftX))
+                else if(Math.abs(shiftY) > Math.abs(shiftX) + drag.threshold)
                 {
                     drag.axis = Drag.YAxis;
+                    axisCanBeChanged = false;
                 }
-                axisCanBeChanged = false;
             }
         }
 
