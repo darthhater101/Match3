@@ -5,7 +5,7 @@ Item {
     signal clicked
     signal dropped()
     signal entered(int holdIndex, int targetIndex)
-    property Item currentItem: Item {}
+    property Item currentItem: null
     property bool isHorizontal: false
 
     visible: !deleted
@@ -48,30 +48,34 @@ Item {
             }
         }
         onDropped: {
-            root.currentItem.animationEnabled = false
-            if(isHorizontal)
+            if(root.currentItem)
             {
-                root.currentItem.anchors.horizontalCenterOffset = 0
+                root.currentItem.animationEnabled = false
+                if(isHorizontal)
+                {
+                    root.currentItem.anchors.horizontalCenterOffset = 0
+                }
+                else
+                {
+                    root.currentItem.anchors.verticalCenterOffset = 0
+                }
+                root.currentItem = null
             }
-            else
-            {
-                root.currentItem.anchors.verticalCenterOffset = 0
-            }
-
-            root.currentItem = null
         }
 
         onExited: {
-            if(isHorizontal)
+            if(root.currentItem)
             {
-                root.currentItem.anchors.horizontalCenterOffset = 0
+                if(isHorizontal)
+                {
+                    root.currentItem.anchors.horizontalCenterOffset = 0
+                }
+                else
+                {
+                    root.currentItem.anchors.verticalCenterOffset = 0
+                }
+                root.currentItem = null
             }
-            else
-            {
-                root.currentItem.anchors.verticalCenterOffset = 0
-            }
-
-            root.currentItem = null
         }
     }
 
@@ -136,9 +140,40 @@ Item {
         drag.maximumY: root.height + (root.height * 0.3) / 2
         drag.minimumY: -root.height + (root.height * 0.3) / 2
 
+        property bool axisCanBeChanged: true
+        property int shiftX: 0
+        property int shiftY: 0
+        property int startX: 0
+        property int startY: 0
+
+        onMouseXChanged: shiftX = mouseX - startX
+        onMouseYChanged: shiftY = mouseY - startY
+        onPositionChanged: {
+            if(axisCanBeChanged)
+            {
+                if(Math.abs(shiftX) > Math.abs(shiftY))
+                {
+                    drag.axis = Drag.XAxis;
+                }
+                else if(Math.abs(shiftY) > Math.abs(shiftX))
+                {
+                    drag.axis = Drag.YAxis;
+                }
+                axisCanBeChanged = false;
+            }
+        }
+
+        onPressed: {
+            startX = mouseX;
+            startY = mouseY;
+        }
+
         onReleased: {
-            circle.Drag.drop()
-            root.dropped()
+            circle.Drag.drop();
+            root.dropped();
+            shiftX = 0;
+            shiftY = 0;
+            axisCanBeChanged = true;
         }
     }
 }
