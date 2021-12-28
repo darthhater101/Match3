@@ -24,7 +24,6 @@ GameFieldModel::GameFieldModel(QObject *parent)
 {
     m_roleNames[ColorRole] = "name";
     m_roleNames[DeletedRole] = "deleted";
-    m_roleNames[MatchedRole] = "matched";
 
     m_gameConfig = loadGameFieldConfiguration();
     m_gameField.resize(m_gameConfig.rows * m_gameConfig.columns);
@@ -57,8 +56,6 @@ QVariant GameFieldModel::data(const QModelIndex &index, int role) const
         return m_gameField[row].getColor().name();
     case DeletedRole:
         return m_gameField[row].isDeleted();
-    case MatchedRole:
-        return m_gameField[row].isMatched();
     }
 
     return QVariant();
@@ -88,7 +85,7 @@ bool GameFieldModel::swap(int from, int to)
     return false;
 }
 
-GameConfig GameFieldModel::loadGameFieldConfiguration()
+GameConfig GameFieldModel::loadGameFieldConfiguration() const
 {
     QFile configFile("://config.json");
     QString content;
@@ -108,8 +105,8 @@ GameConfig GameFieldModel::loadGameFieldConfiguration()
     int rows = doc.object().value(QString("rows")).toInt();
     int columns = doc.object().value(QString("columns")).toInt();
 
-    rows = rows < 4? 4 : rows > 20 ? 20 : rows;
-    columns = columns < 4 ? 4 : columns > 20 ? 20 : columns;
+    rows = rows < 4? 4 : rows > 10 ? 10 : rows;
+    columns = columns < 4 ? 4 : columns > 10 ? 10 : columns;
 
     QVector<QColor> colors;
     for(int i = 0; i < arr.size(); i++)
@@ -302,12 +299,12 @@ int GameFieldModel::match3(Tile& tile1, Tile& tile2, Tile& tile3)
     return match;
 }
 
-bool GameFieldModel::possibleMatch3(const Tile &tile1, const Tile &tile2, const Tile &tile3)
+bool GameFieldModel::possibleMatch3(const Tile &tile1, const Tile &tile2, const Tile &tile3) const
 {
     return tile1 == tile2 && tile1 == tile3;
 }
 
-bool GameFieldModel::hasMoves()
+bool GameFieldModel::hasMoves() const
 {
     auto tile = m_gameField.begin();
     for(int i = 0; i < m_gameConfig.rows; i++)
@@ -423,12 +420,12 @@ QHash<int, QByteArray> GameFieldModel::roleNames() const
     return m_roleNames;
 }
 
-int GameFieldModel::getRows()
+int GameFieldModel::getRows() const
 {
     return m_gameConfig.rows;
 }
 
-int GameFieldModel::getColumns()
+int GameFieldModel::getColumns() const
 {
     return m_gameConfig.columns;
 }

@@ -44,8 +44,8 @@ Window {
         anchors.top: controlPanel.bottom
         anchors.bottom: parent.bottom
         width: root.width
-        cellWidth: width / field.columns
-        cellHeight: height / field.rows
+        cellWidth: width < height ? height / field.rows : width / field.columns
+        cellHeight: cellWidth
 
         property int previousClickedIndex: -1
         property int currentClickedIndex: -1
